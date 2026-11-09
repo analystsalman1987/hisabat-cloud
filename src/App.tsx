@@ -1,276 +1,66 @@
+import { useEffect, useMemo, useState } from 'react'
+import { LayoutDashboard, Wallet, ShoppingCart, Package, Users, FileText, Settings, Bell, Globe, ChevronDown, Menu, Plus, Search, Printer, Download, CheckCircle2, Clock3, X, Save, ArrowLeft, Landmark, Truck, ClipboardList, BookOpen, ShieldCheck, Languages, FileSpreadsheet, CircleDollarSign, UserRound, Building2, Receipt, BarChart3 } from 'lucide-react'
 
-import { useState } from 'react'
-import {
-  LayoutDashboard, Wallet, ShoppingCart, Package,
-  Users, FileText, Settings, Bell, Globe, ChevronDown,
-  Menu, Plus, ArrowUpRight, TrendingUp, TrendingDown,
-  CreditCard, BookOpen, Receipt, ClipboardList,
-  FileCheck, RotateCcw, Truck, UserCog, ShieldCheck,
-  BarChart3, Landmark, FolderOpen
-} from 'lucide-react'
-
-const modules = [
-  { name: 'Dashboard', icon: LayoutDashboard },
-  {
-    name: 'Accounting', icon: Wallet,
-    children: ['Chart of Accounts', 'Journal Entries', 'General Ledger', 'Trial Balance', 'Profit & Loss', 'Balance Sheet', 'Cash & Bank']
-  },
-  {
-    name: 'Sales', icon: ShoppingCart,
-    children: ['Sales Overview', 'Manage Invoices', 'Quotations', 'Sales Orders', 'Create Invoice', 'Delivery Notes', 'Sales Returns', 'Client Payments', 'Sales Settings']
-  },
-  {
-    name: 'Purchases', icon: CreditCard,
-    children: ['Purchases Overview', 'Purchase Requests', 'Purchase Orders', 'Supplier Bills', 'Purchase Invoices', 'Goods Receipt (GRN)', 'Supplier Payments', 'Purchase Returns', 'Purchase Settings']
-  },
-  {
-    name: 'Inventory', icon: Package,
-    children: ['Items & Products', 'Categories', 'Warehouses', 'Stock Overview', 'Stock Adjustments', 'Stock Transfers']
-  },
-  {
-    name: 'Customers', icon: Users,
-    children: ['Customer List', 'Add Customer', 'Customer Statements']
-  },
-  {
-    name: 'Suppliers', icon: Truck,
-    children: ['Supplier List', 'Add Supplier', 'Supplier Statements']
-  },
-  {
-    name: 'Reports', icon: FileText,
-    children: ['Financial Reports', 'Sales Reports', 'Purchase Reports', 'Inventory Reports', 'Tax Reports', 'Aging Reports']
-  },
-  {
-    name: 'Settings', icon: Settings,
-    children: ['Company Profile', 'Users & Roles', 'Taxes & VAT', 'Currencies', 'Document Templates', 'Language & Appearance', 'Subscription']
-  }
+type Row = { id:string; [key:string]:any }
+type Invoice = {id:string; customer:string; date:string; due:string; amount:number; vat:number; status:'Draft'|'Submitted'|'Approved'|'Final'|'Paid'; note:string}
+type Party = {id:string; name:string; arabic:string; email:string; phone:string; vatNo:string; address:string; balance:number; type:string}
+type JournalLine = {account:string; debit:number; credit:number}
+const menu = [
+ {name:'Dashboard',icon:LayoutDashboard,children:['Business Overview','Recent Transactions']},
+ {name:'Accounting',icon:Wallet,children:['Chart of Accounts','Journal Entries','General Ledger','Trial Balance','Profit & Loss','Balance Sheet','Cash & Bank']},
+ {name:'Sales',icon:ShoppingCart,children:['Sales Overview','Manage Invoices','Quotations','Sales Orders','Create Invoice','Delivery Notes','Sales Returns','Client Payments','Sales Settings']},
+ {name:'Purchases',icon:CircleDollarSign,children:['Purchases Overview','Purchase Requests','Purchase Orders','Supplier Bills','Purchase Invoices','Goods Receipt (GRN)','Supplier Payments','Purchase Returns','Purchase Settings']},
+ {name:'Inventory',icon:Package,children:['Items & Products','Categories','Warehouses','Stock Overview','Stock Adjustments','Stock Transfers']},
+ {name:'Customers',icon:Users,children:['Customer List','Add Customer','Customer Statements']},
+ {name:'Suppliers',icon:Truck,children:['Supplier List','Add Supplier','Supplier Statements']},
+ {name:'Reports',icon:FileText,children:['Financial Reports','Sales Reports','Purchase Reports','Inventory Reports','Tax Reports','Aging Reports']},
+ {name:'Employees',icon:ShieldCheck,children:['Employee List','Roles & Permissions']},
+ {name:'Settings',icon:Settings,children:['Company Profile','Users & Roles','Taxes & VAT','Currencies','Document Templates','Language & Appearance','Subscription']}
 ]
-
-export default function App() {
-  const [active, setActive] = useState('Dashboard')
-  const [language, setLanguage] = useState('English')
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [expanded, setExpanded] = useState<string[]>([
-    'Accounting', 'Sales', 'Purchases'
-  ])
-
-  const toggleCategory = (name: string) => {
-    setExpanded(current =>
-      current.includes(name)
-        ? current.filter(item => item !== name)
-        : [...current, name]
-    )
-  }
-
-  const selectPage = (name: string) => {
-    setActive(name)
-    setMenuOpen(false)
-  }
-
-  return (
-    <div className="app">
-      <aside className={`sidebar ${menuOpen ? 'show' : ''}`}>
-        <div className="brand">
-          <div className="brand-icon">H</div>
-          <div><h2>HISABAT</h2><span>CLOUD ERP</span></div>
-        </div>
-
-        <div className="workspace">
-          <span>WORKSPACE</span>
-          <strong>My Company</strong>
-        </div>
-
-        <nav>
-          <small>MAIN MENU</small>
-
-          {modules.map(item => {
-            const Icon = item.icon
-            const hasChildren = !!item.children
-            const isExpanded = expanded.includes(item.name)
-            const isActive = active === item.name ||
-              item.children?.includes(active)
-
-            return (
-              <div className="nav-group" key={item.name}>
-                <button
-                  className={`nav-item ${isActive ? 'active' : ''}`}
-                  onClick={() =>
-                    hasChildren
-                      ? toggleCategory(item.name)
-                      : selectPage(item.name)
-                  }
-                >
-                  <Icon size={19} />
-                  <span>{item.name}</span>
-                  {hasChildren && (
-                    <ChevronDown
-                      size={16}
-                      className={`nav-chevron ${isExpanded ? 'rotated' : ''}`}
-                    />
-                  )}
-                </button>
-
-                {hasChildren && isExpanded && (
-                  <div className="submenu">
-                    {item.children!.map(child => (
-                      <button
-                        key={child}
-                        className={`submenu-item ${active === child ? 'selected' : ''}`}
-                        onClick={() => selectPage(child)}
-                      >
-                        <span className="submenu-dot" />
-                        {child}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </nav>
-
-        <div className="sidebar-bottom">
-          <div className="help">
-            <span>✦</span>
-            <div><b>Need assistance?</b><p>We're here to help you.</p></div>
-          </div>
-          <div className="user">
-            <div className="avatar">MS</div>
-            <div><b>Administrator</b><p>Super Admin</p></div>
-          </div>
-        </div>
-      </aside>
-
-      <main className="main">
-        <header className="topbar">
-          <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
-            <Menu />
-          </button>
-
-          <div className="breadcrumb">
-            Workspace / <b>{active}</b>
-          </div>
-
-          <div className="top-actions">
-            <button
-              className="language"
-              onClick={() => setLanguage(language === 'English' ? 'العربية' : 'English')}
-            >
-              <Globe size={17} />{language}<ChevronDown size={15} />
-            </button>
-            <button className="notification"><Bell size={19} /><i /></button>
-            <div className="avatar">MS</div>
-          </div>
-        </header>
-
-        <section className="content">
-          {active === 'Dashboard' ? (
-            <>
-              <div className="welcome">
-                <div>
-                  <span className="eyebrow">SUNDAY, NOVEMBER 8, 2026</span>
-                  <h1>Welcome back, Administrator 👋</h1>
-                  <p>Here's what's happening with your business today.</p>
-                </div>
-                <button className="primary"><Plus size={18} /> New Transaction</button>
-              </div>
-
-              <div className="section-title">
-                <div><h2>Business Overview</h2><p>Your financial performance at a glance</p></div>
-                <button className="filter">This Month <ChevronDown size={15} /></button>
-              </div>
-
-              <div className="stats">
-                <div className="stat">
-                  <div className="stat-head"><span>Total Revenue</span><span className="stat-icon blue"><TrendingUp /></span></div>
-                  <h2>SAR 128,450.00</h2><p className="positive">↗ 12.8% <span>vs last month</span></p>
-                </div>
-                <div className="stat">
-                  <div className="stat-head"><span>Total Expenses</span><span className="stat-icon orange"><TrendingDown /></span></div>
-                  <h2>SAR 48,290.00</h2><p className="negative">↗ 4.2% <span>vs last month</span></p>
-                </div>
-                <div className="stat">
-                  <div className="stat-head"><span>Accounts Receivable</span><span className="stat-icon purple"><Users /></span></div>
-                  <h2>SAR 32,800.00</h2><p className="neutral">12 outstanding invoices</p>
-                </div>
-                <div className="stat">
-                  <div className="stat-head"><span>Accounts Payable</span><span className="stat-icon green"><CreditCard /></span></div>
-                  <h2>SAR 18,650.00</h2><p className="neutral">8 pending bills</p>
-                </div>
-              </div>
-
-              <div className="panels">
-                <div className="panel chart-panel">
-                  <div className="panel-heading">
-                    <div><h3>Revenue & Expenses</h3><p>Monthly financial summary</p></div>
-                    <span className="chart-label">2026</span>
-                  </div>
-                  <div className="chart">
-                    <div className="chart-y"><span>150k</span><span>100k</span><span>50k</span><span>0</span></div>
-                    <div className="chart-area">
-                      {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m,i) => (
-                        <div className="bar-group" key={m}>
-                          <div className="bars">
-                            <i style={{height:`${35+(i*17)%55}%`}} />
-                            <i style={{height:`${20+(i*11)%40}%`}} />
-                          </div>
-                          <small>{m}</small>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="legend"><span><i className="blue-dot" />Revenue</span><span><i className="orange-dot" />Expenses</span></div>
-                </div>
-
-                <div className="panel">
-                  <div className="panel-heading"><div><h3>Quick Actions</h3><p>Common tasks</p></div></div>
-                  <div className="quick-actions">
-                    {[
-                      ['＋','New Invoice','Create sales invoice'],
-                      ['↙','Record Payment','Receive customer payment'],
-                      ['＋','New Purchase','Create purchase order'],
-                      ['▤','View Reports','Financial reports']
-                    ].map(a => (
-                      <button key={a[1]} onClick={() => selectPage(a[1])}>
-                        <span>{a[0]}</span>
-                        <div><b>{a[1]}</b><small>{a[2]}</small></div>
-                        <ArrowUpRight size={16} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="panel transactions">
-                <div className="panel-heading">
-                  <div><h3>Recent Transactions</h3><p>Latest business activities</p></div>
-                  <button className="view-all" onClick={() => selectPage('General Ledger')}>View All <ArrowUpRight size={15} /></button>
-                </div>
-                <div className="table-wrap">
-                  <table>
-                    <thead><tr><th>TRANSACTION</th><th>DATE</th><th>TYPE</th><th>AMOUNT</th><th>STATUS</th></tr></thead>
-                    <tbody>
-                      <tr><td><b>INV-2026-001</b><small>ABC Trading Company</small></td><td>08 Nov 2026</td><td>Sales Invoice</td><td className="amount">SAR 12,500.00</td><td><span className="status paid">Paid</span></td></tr>
-                      <tr><td><b>INV-2026-002</b><small>Global Supplies Ltd.</small></td><td>07 Nov 2026</td><td>Sales Invoice</td><td className="amount">SAR 8,750.00</td><td><span className="status pending">Pending</span></td></tr>
-                      <tr><td><b>PO-2026-014</b><small>Modern Industrial Co.</small></td><td>06 Nov 2026</td><td>Purchase</td><td className="amount">SAR 5,200.00</td><td><span className="status paid">Completed</span></td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="panel module-placeholder">
-              <div className="module-icon"><FolderOpen size={30} /></div>
-              <h2>{active}</h2>
-              <p>This section is selected. Its dedicated workspace can be added here.</p>
-              <button className="primary" onClick={() => selectPage('Dashboard')}>
-                <LayoutDashboard size={17} /> Back to Dashboard
-              </button>
-            </div>
-          )}
-
-          <footer>© 2026 HISABAT Cloud. All rights reserved. <span>Built for smarter business management.</span></footer>
-        </section>
-      </main>
-    </div>
-  )
+const today = new Date().toISOString().slice(0,10)
+const initialParties:Party[]=[{id:'CUS-001',name:'ABC Trading Company',arabic:'شركة اي بي سي التجارية',email:'accounts@abctrading.com',phone:'+966 50 000 0001',vatNo:'300000000000003',address:'Dammam, Saudi Arabia',balance:12500,type:'Customer'},{id:'CUS-002',name:'Global Supplies Ltd.',arabic:'جلوبال للتوريدات',email:'finance@globalsupplies.com',phone:'+966 55 000 0002',vatNo:'300000000000010',address:'Khobar, Saudi Arabia',balance:8750,type:'Customer'},{id:'SUP-001',name:'Modern Industrial Co.',arabic:'شركة الصناعات الحديثة',email:'ap@modernindustrial.com',phone:'+966 54 000 0003',vatNo:'310000000000003',address:'Dammam, Saudi Arabia',balance:5200,type:'Supplier'}]
+const initialInvoices:Invoice[]=[{id:'INV-2026-001',customer:'ABC Trading Company',date:today,due:today,amount:12500,vat:1875,status:'Paid',note:'Monthly supply'},{id:'INV-2026-002',customer:'Global Supplies Ltd.',date:today,due:today,amount:8750,vat:1312.5,status:'Submitted',note:'Industrial items'}]
+const money=(n:number)=>new Intl.NumberFormat('en-SA',{style:'currency',currency:'SAR',maximumFractionDigits:2}).format(n||0)
+const load=<T,>(key:string,fallback:T):T=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback}catch{return fallback}}
+export default function App(){
+ const [active,setActive]=useState('Dashboard'),[expanded,setExpanded]=useState<string[]>(menu.map(m=>m.name)),[menuOpen,setMenuOpen]=useState(false)
+ const [language,setLanguage]=useState<'English'|'العربية'>(()=>load('hisabat-language','English'))
+ const [company,setCompany]=useState(()=>load('hisabat-company',{name:'My Company',category:'Trading',vat:'',address:'',currency:'SAR',admin:'Administrator',email:''}))
+ const [onboarded,setOnboarded]=useState(()=>load('hisabat-onboarded',false)),[step,setStep]=useState(0)
+ const [parties,setParties]=useState<Party[]>(()=>load('hisabat-parties',initialParties)),[invoices,setInvoices]=useState<Invoice[]>(()=>load('hisabat-invoices',initialInvoices))
+ const [selectedParty,setSelectedParty]=useState<Party|null>(null),[query,setQuery]=useState(''),[modal,setModal]=useState(''),[toast,setToast]=useState('')
+ const [partyForm,setPartyForm]=useState<Partial<Party>>({type:'Customer'}),[invoiceForm,setInvoiceForm]=useState({customer:'',date:today,due:today,amount:'',vat:'15',note:''})
+ const [journal,setJournal]=useState<JournalLine[]>([{account:'Cash & Bank',debit:0,credit:0},{account:'Sales Revenue',debit:0,credit:0}])
+ const [journalEntries,setJournalEntries]=useState<Row[]>(()=>load('hisabat-journals',[])),[filter,setFilter]=useState('All'),[template,setTemplate]=useState('Modern Navy & Gold')
+ useEffect(()=>{localStorage.setItem('hisabat-company',JSON.stringify(company));localStorage.setItem('hisabat-onboarded',JSON.stringify(onboarded));localStorage.setItem('hisabat-parties',JSON.stringify(parties));localStorage.setItem('hisabat-invoices',JSON.stringify(invoices));localStorage.setItem('hisabat-journals',JSON.stringify(journalEntries));localStorage.setItem('hisabat-language',JSON.stringify(language))},[company,onboarded,parties,invoices,journalEntries,language])
+ useEffect(()=>{if(toast){const t=setTimeout(()=>setToast(''),2800);return()=>clearTimeout(t)}},[toast])
+ const isAr=language==='العربية'
+ const allRows=useMemo(()=>invoices.filter(i=>(filter==='All'||i.status===filter)&&`${i.id} ${i.customer} ${i.status}`.toLowerCase().includes(query.toLowerCase())),[invoices,filter,query])
+ const totalSales=invoices.reduce((s,i)=>s+i.amount,0),totalVat=invoices.reduce((s,i)=>s+i.vat,0)
+ const toggle=(n:string)=>setExpanded(v=>v.includes(n)?v.filter(x=>x!==n):[...v,n])
+ const go=(n:string)=>{setActive(n);setMenuOpen(false);setSelectedParty(null);setQuery('')}
+ const notify=(s:string)=>setToast(s)
+ const exportCSV=(rows:any[],filename:string)=>{if(!rows.length){notify('No data to export');return}const keys=Object.keys(rows[0]);const csv=[keys.join(','),...rows.map(r=>keys.map(k=>`"${String(r[k]??'').replace(/"/g,'""')}"`).join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=filename+'.csv';a.click();URL.revokeObjectURL(a.href);notify('Excel-compatible CSV exported')}
+ const print=()=>window.print()
+ const saveParty=()=>{if(!partyForm.name?.trim()){notify('Please enter name');return}const p={id:`${partyForm.type==='Supplier'?'SUP':'CUS'}-${String(parties.length+1).padStart(3,'0')}`,name:partyForm.name||'',arabic:partyForm.arabic||'',email:partyForm.email||'',phone:partyForm.phone||'',vatNo:partyForm.vatNo||'',address:partyForm.address||'',balance:Number(partyForm.balance||0),type:partyForm.type||'Customer'} as Party;setParties(v=>[p,...v]);setModal('');setPartyForm({type:'Customer'});notify('Profile saved')}
+ const saveInvoice=()=>{if(!invoiceForm.customer||!Number(invoiceForm.amount)){notify('Select customer and enter amount');return}const amount=Number(invoiceForm.amount),vat=amount*Number(invoiceForm.vat)/100;setInvoices(v=>[{id:`INV-${new Date().getFullYear()}-${String(v.length+1).padStart(3,'0')}`,customer:invoiceForm.customer,date:invoiceForm.date,due:invoiceForm.due,amount,vat,status:'Draft',note:invoiceForm.note},...v]);setModal('');setInvoiceForm({customer:'',date:today,due:today,amount:'',vat:'15',note:''});go('Manage Invoices');notify('Draft invoice created')}
+ const updateStatus=(id:string,status:Invoice['status'])=>{setInvoices(v=>v.map(i=>i.id===id?{...i,status}:i));notify(`Invoice ${status.toLowerCase()}`)}
+ const saveJournal=()=>{const debit=journal.reduce((s,l)=>s+Number(l.debit),0),credit=journal.reduce((s,l)=>s+Number(l.credit),0);if(!debit||Math.abs(debit-credit)>0.009){notify('Journal must balance: total debit must equal credit');return}setJournalEntries(v=>[{id:`JE-${String(v.length+1).padStart(4,'0')}`,date:today,debit,credit,lines:journal},...v]);setJournal([{account:'Cash & Bank',debit:0,credit:0},{account:'Sales Revenue',debit:0,credit:0}]);notify('Journal entry posted')}
+ const heading=(sub:string,desc:string,action?:()=>void,label?:string)=><div className="page-heading"><div><div className="eyebrow">HISABAT CLOUD / {active.toUpperCase()}</div><h1>{sub}</h1><p>{desc}</p></div>{action&&<button className="btn primary" onClick={action}><Plus size={17}/>{label||'Create New'}</button>}</div>
+ const table=(headers:string[],rows:any[][])=><div className="table-wrap"><table><thead><tr>{headers.map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.length?rows.map((r,i)=><tr key={i}>{r.map((c,j)=><td key={j}>{c}</td>)}</tr>):<tr><td colSpan={headers.length} className="empty">No records found</td></tr>}</tbody></table></div>
+ const status=(s:string)=><span className={`status ${s.toLowerCase()}`}>{s}</span>
+ const partyList=parties.filter(p=>p.type===(active.includes('Supplier')?'Supplier':'Customer')&&`${p.name} ${p.id} ${p.email}`.toLowerCase().includes(query.toLowerCase()))
+ const renderDashboard=()=> <><div className="welcome"><div><span className="eyebrow">BUSINESS WORKSPACE</span><h1>Welcome back, {company.admin||'Administrator'} 👋</h1><p>Here’s what’s happening with your business today.</p></div><button className="btn primary" onClick={()=>setModal('invoice')}><Plus size={17}/>New Invoice</button></div><div className="stats"><Stat label="Total Sales" value={money(totalSales)} icon={<BarChart3/>} tone="blue"/><Stat label="VAT Output" value={money(totalVat)} icon={<Receipt/>} tone="gold"/><Stat label="Accounts Receivable" value={money(parties.filter(p=>p.type==='Customer').reduce((s,p)=>s+p.balance,0))} icon={<Users/>} tone="purple"/><Stat label="Journal Entries" value={String(journalEntries.length)} icon={<BookOpen/>} tone="green"/></div><div className="grid-two"><div className="panel"><div className="panel-title"><div><h3>Sales & Invoices</h3><p>Latest invoice activity</p></div><button className="text-btn" onClick={()=>go('Manage Invoices')}>View all →</button></div>{table(['INVOICE','CUSTOMER','DATE','AMOUNT','STATUS'],invoices.slice(0,5).map(i=>[i.id,i.customer,i.date,money(i.amount+i.vat),status(i.status)]))}</div><div className="panel"><div className="panel-title"><div><h3>Quick Actions</h3><p>Common accounting tasks</p></div></div><div className="quick-grid"><button onClick={()=>setModal('invoice')}><Receipt/>Create Invoice</button><button onClick={()=>go('Add Customer')}><Users/>Add Customer</button><button onClick={()=>go('Journal Entries')}><BookOpen/>Journal Entry</button><button onClick={()=>go('Financial Reports')}><FileSpreadsheet/>View Reports</button></div></div></div><div className="panel"><div className="panel-title"><div><h3>Business setup</h3><p>Company profile and system settings</p></div><button className="btn light" onClick={()=>go('Company Profile')}>Manage company</button></div><div className="company-strip"><Building2/><div><b>{company.name}</b><small>{company.category} · {company.currency} · {company.vat||'VAT not added'}</small></div></div></div></>
+ const renderParties=()=> <>{heading(active.includes('Supplier')?'Suppliers':'Customers','Manage profiles, balances, statements and contact information.',()=>{setPartyForm({type:active.includes('Supplier')?'Supplier':'Customer'});setModal('party')},'Add '+(active.includes('Supplier')?'Supplier':'Customer'))}<div className="toolbar"><div className="search"><Search size={17}/><input placeholder="Search name, ID or email..." value={query} onChange={e=>setQuery(e.target.value)}/></div><button className="btn light" onClick={()=>exportCSV(partyList,'hisabat-parties')}><Download size={16}/>Export Excel</button></div><div className="stats compact"><Stat label="Total Profiles" value={String(partyList.length)} icon={<Users/>} tone="blue"/><Stat label="Total Outstanding" value={money(partyList.reduce((s,p)=>s+p.balance,0))} icon={<Wallet/>} tone="gold"/><Stat label="VAT Registered" value={String(partyList.filter(p=>p.vatNo).length)} icon={<Receipt/>} tone="green"/></div><div className="panel">{table(['ID','NAME','EMAIL / PHONE','VAT NUMBER','BALANCE','ACTION'],partyList.map(p=>[p.id,<button className="link-btn" onClick={()=>setSelectedParty(p)}>{p.name}</button>,<>{p.email}<small>{p.phone}</small></>,p.vatNo||'—',money(p.balance),<button className="btn tiny" onClick={()=>setSelectedParty(p)}>Open Profile</button>]))}</div>{selectedParty&&<div className="panel profile"><button className="close" onClick={()=>setSelectedParty(null)}><X/></button><span className="eyebrow">{selectedParty.type.toUpperCase()} PROFILE</span><h2>{selectedParty.name}</h2><p>{selectedParty.arabic}</p><div className="profile-grid">{[['Profile ID',selectedParty.id],['Email',selectedParty.email],['Phone',selectedParty.phone],['VAT Registration',selectedParty.vatNo],['National Address',selectedParty.address],['Account Balance',money(selectedParty.balance)]].map(([a,b])=><div><small>{a}</small><b>{b||'—'}</b></div>)}</div><div className="panel-title"><h3>Account Summary</h3><button className="btn light" onClick={()=>exportCSV([{...selectedParty}],'party-statement')}>Export Statement</button></div><p className="muted">Transaction history will appear here as invoices, receipts, bills and payments are recorded.</p></div>}</>
+ const renderInvoices=()=> <>{heading(active==='Create Invoice'?'Create Sales Invoice':'Sales Invoices','Draft → Submit → Approve → Final. Final documents can be printed and exported.',()=>setModal('invoice'),'Create Invoice')}<div className="toolbar"><div className="search"><Search size={17}/><input placeholder="Search invoice or customer..." value={query} onChange={e=>setQuery(e.target.value)}/></div><select value={filter} onChange={e=>setFilter(e.target.value)}><option>All</option>{['Draft','Submitted','Approved','Final','Paid'].map(s=><option>{s}</option>)}</select><button className="btn light" onClick={()=>exportCSV(allRows,'hisabat-sales-invoices')}><Download size={16}/>Excel</button><button className="btn light" onClick={print}><Printer size={16}/>Print / PDF</button></div><div className="panel">{table(['INVOICE','CUSTOMER','DATE','DUE DATE','SUBTOTAL','VAT','TOTAL','STATUS','ACTIONS'],allRows.map(i=>[i.id,i.customer,i.date,i.due,money(i.amount),money(i.vat),money(i.amount+i.vat),status(i.status),<div className="actions">{i.status==='Draft'&&<button className="btn tiny" onClick={()=>updateStatus(i.id,'Submitted')}>Submit</button>}{i.status==='Submitted'&&<button className="btn tiny" onClick={()=>updateStatus(i.id,'Approved')}>Approve</button>}{i.status==='Approved'&&<button className="btn tiny primary" onClick={()=>updateStatus(i.id,'Final')}>Finalize</button>}{i.status==='Final'&&<button className="btn tiny" onClick={()=>updateStatus(i.id,'Paid')}>Mark Paid</button>}<button className="icon-btn" title="Print" onClick={print}><Printer size={15}/></button></div>]))}</div><div className="hint"><CheckCircle2 size={17}/> Final invoices should be treated as posted documents. Drafts remain editable until submitted.</div></>
+ const renderJournal=()=> <>{heading('Journal Entries','Record balanced double-entry transactions. Total debit must equal total credit.',undefined)}<div className="panel"><div className="panel-title"><div><h3>New Journal Entry</h3><p>Manual debit and credit posting</p></div><span className="status draft">UNPOSTED</span></div><div className="journal-lines"><div className="journal-head"><span>ACCOUNT</span><span>DEBIT (SAR)</span><span>CREDIT (SAR)</span><span></span></div>{journal.map((l,i)=><div className="journal-row"><input value={l.account} onChange={e=>setJournal(v=>v.map((x,j)=>j===i?{...x,account:e.target.value}:x))} placeholder="Account name"/><input type="number" value={l.debit||''} onChange={e=>setJournal(v=>v.map((x,j)=>j===i?{...x,debit:Number(e.target.value),credit:0}:x))}/><input type="number" value={l.credit||''} onChange={e=>setJournal(v=>v.map((x,j)=>j===i?{...x,credit:Number(e.target.value),debit:0}:x))}/><button className="icon-btn" onClick={()=>setJournal(v=>v.filter((_,j)=>i!==j))}><X size={16}/></button></div>)}</div><button className="btn light" onClick={()=>setJournal(v=>[...v,{account:'',debit:0,credit:0}])}><Plus size={16}/>Add Line</button><div className="totals"><b>Debit: {money(journal.reduce((s,l)=>s+l.debit,0))}</b><b>Credit: {money(journal.reduce((s,l)=>s+l.credit,0))}</b></div><button className="btn primary" onClick={saveJournal}><Save size={16}/>Post Journal Entry</button></div><div className="panel"><div className="panel-title"><h3>Posted Journal Entries</h3><button className="btn light" onClick={()=>exportCSV(journalEntries,'journal-entries')}><Download size={16}/>Excel</button></div>{table(['ENTRY','DATE','DEBIT','CREDIT','STATUS'],journalEntries.map(j=>[j.id,j.date,money(j.debit),money(j.credit),status('Posted')]))}</div></>
+ const renderReports=()=> <>{heading(active,'Review financial and operational performance. Export reflects selected filters.',undefined)}<div className="toolbar"><select value={filter} onChange={e=>setFilter(e.target.value)}><option>All</option>{['Draft','Submitted','Approved','Final','Paid'].map(s=><option>{s}</option>)}</select><button className="btn light" onClick={()=>exportCSV(allRows,'hisabat-filtered-report')}><FileSpreadsheet size={16}/>Export Excel</button><button className="btn light" onClick={print}><Printer size={16}/>Print / Save PDF</button></div><div className="stats"><Stat label="Revenue (excl. VAT)" value={money(invoices.filter(i=>['Final','Paid'].includes(i.status)).reduce((s,i)=>s+i.amount,0))} icon={<BarChart3/>} tone="blue"/><Stat label="Output VAT" value={money(totalVat)} icon={<Receipt/>} tone="gold"/><Stat label="Journal Debits" value={money(journalEntries.reduce((s,j)=>s+j.debit,0))} icon={<Wallet/>} tone="purple"/><Stat label="Journal Credits" value={money(journalEntries.reduce((s,j)=>s+j.credit,0))} icon={<Landmark/>} tone="green"/></div><div className="grid-two"><div className="panel"><h3>Profit & Loss</h3><div className="report-line"><span>Sales Revenue</span><b>{money(invoices.filter(i=>['Final','Paid'].includes(i.status)).reduce((s,i)=>s+i.amount,0))}</b></div><div className="report-line"><span>Operating Expenses</span><b>{money(0)}</b></div><div className="report-line grand"><span>Net Profit</span><b>{money(invoices.filter(i=>['Final','Paid'].includes(i.status)).reduce((s,i)=>s+i.amount,0))}</b></div></div><div className="panel"><h3>Balance Sheet</h3><div className="report-line"><span>Cash & Receivables</span><b>{money(parties.reduce((s,p)=>s+p.balance,0))}</b></div><div className="report-line"><span>Payables</span><b>{money(parties.filter(p=>p.type==='Supplier').reduce((s,p)=>s+p.balance,0))}</b></div><div className="report-line grand"><span>Net Assets (illustrative)</span><b>{money(parties.filter(p=>p.type==='Customer').reduce((s,p)=>s+p.balance,0)-parties.filter(p=>p.type==='Supplier').reduce((s,p)=>s+p.balance,0))}</b></div></div></div><div className="panel"><h3>Sales Report</h3>{table(['INVOICE','CUSTOMER','DATE','SUBTOTAL','VAT','TOTAL','STATUS'],allRows.map(i=>[i.id,i.customer,i.date,money(i.amount),money(i.vat),money(i.amount+i.vat),status(i.status)]))}</div></>
+ const renderPurchases=()=> <>{heading(active,'Manage purchase requests, orders, supplier bills, GRN and payments.',()=>setModal('purchase'),'New Purchase')}<div className="stats compact"><Stat label="Supplier Profiles" value={String(parties.filter(p=>p.type==='Supplier').length)} icon={<Truck/>} tone="blue"/><Stat label="Outstanding Payables" value={money(parties.filter(p=>p.type==='Supplier').reduce((s,p)=>s+p.balance,0))} icon={<Wallet/>} tone="gold"/><Stat label="Purchase Documents" value="0" icon={<ClipboardList/>} tone="green"/></div><div className="panel"><div className="panel-title"><h3>Purchase workflow</h3><button className="btn light" onClick={()=>go('Supplier List')}>Suppliers</button></div><div className="workflow">{['Purchase Request','Purchase Order','Goods Receipt (GRN)','Supplier Bill','Supplier Payment','Purchase Return'].map((x,i)=><button onClick={()=>{setModal('purchase');setPartyForm({type:'Supplier'});}}><span>{String(i+1).padStart(2,'0')}</span><b>{x}</b><small>Create and manage</small></button>)}</div></div><div className="panel"><h3>Supplier balances</h3>{table(['SUPPLIER','VAT NUMBER','BALANCE','ACTION'],parties.filter(p=>p.type==='Supplier').map(p=>[p.name,p.vatNo,money(p.balance),<button className="btn tiny" onClick={()=>{go('Supplier List');setSelectedParty(p)}}>Open</button>]))}</div></>
+ const renderSettings=()=> <>{heading(active,'Configure company, taxes, currencies, templates and workspace preferences.',undefined)}<div className="panel form-grid"><label>Company Name<input value={company.name} onChange={e=>setCompany({...company,name:e.target.value})}/></label><label>Business Category<select value={company.category} onChange={e=>setCompany({...company,category:e.target.value})}>{['Trading','Automation','Production','Services','Contracting','Retail','Other'].map(x=><option>{x}</option>)}</select></label><label>VAT Registration Number<input value={company.vat} onChange={e=>setCompany({...company,vat:e.target.value})}/></label><label>Currency<select value={company.currency} onChange={e=>setCompany({...company,currency:e.target.value})}><option>SAR</option><option>USD</option><option>EUR</option><option>AED</option><option>PKR</option></select></label><label>National Address<input value={company.address} onChange={e=>setCompany({...company,address:e.target.value})}/></label><label>Administrator<input value={company.admin} onChange={e=>setCompany({...company,admin:e.target.value})}/></label><label>Admin Email<input value={company.email} onChange={e=>setCompany({...company,email:e.target.value})}/></label><label>Document Template<select value={template} onChange={e=>setTemplate(e.target.value)}><option>Modern Navy & Gold</option><option>Minimal White</option><option>Classic Corporate</option></select></label></div><div className="panel"><h3>Language & Appearance</h3><p className="muted">Choose English LTR or Arabic RTL. Selection is saved in this browser.</p><button className="btn light" onClick={()=>setLanguage(isAr?'English':'العربية')}><Languages size={17}/>{isAr?'Switch to English':'التبديل إلى العربية'}</button></div><div className="panel"><h3>Printable Templates</h3><p className="muted">Selected template: {template}. Use browser Print → Save as PDF for a printable document.</p><button className="btn light" onClick={print}><Printer size={16}/>Preview / Print Template</button></div></>
+ const renderContent=()=>{if(active==='Dashboard'||active==='Business Overview'||active==='Recent Transactions')return renderDashboard();if(['Customer List','Add Customer','Customer Statements','Supplier List','Add Supplier','Supplier Statements'].includes(active))return renderParties();if(['Manage Invoices','Create Invoice','Sales Overview','Quotations','Sales Orders','Delivery Notes','Sales Returns','Client Payments','Sales Settings'].includes(active))return renderInvoices();if(active==='Journal Entries')return renderJournal();if(['Trial Balance','Profit & Loss','Balance Sheet','General Ledger','Financial Reports','Sales Reports','Purchase Reports','Inventory Reports','Tax Reports','Aging Reports'].includes(active))return renderReports();if(active.startsWith('Purchase')||['Supplier Bills','Purchase Invoices','Goods Receipt (GRN)','Supplier Payments','Purchase Returns'].includes(active))return renderPurchases();if(['Company Profile','Users & Roles','Taxes & VAT','Currencies','Document Templates','Language & Appearance','Subscription','Roles & Permissions','Employee List','Cash & Bank','Chart of Accounts'].includes(active))return renderSettings();return <>{heading(active,'Manage your '+active.toLowerCase()+' workspace.',()=>setModal('generic'),'Add New')}<div className="panel"><div className="empty-state"><Package size={34}/><h2>{active}</h2><p>This workspace is ready for records and transactions. Use the action above to add a record.</p></div></div></>}
+ if(!onboarded)return <div className="onboarding"><div className="onboard-card"><div className="brand big"><div className="brand-icon">H</div><div><h2>HISABAT</h2><span>CLOUD ERP</span></div></div><div className="steps"><span className={step>=0?'current':''}>1. Business Category</span><span className={step>=1?'current':''}>2. Company Details</span><span className={step>=2?'current':''}>3. Admin Account</span></div><h1>{['Choose your business type','Set up your company','Create administrator account'][step]}</h1><p className="muted">Complete the setup to open your HISABAT Cloud workspace.</p>{step===0?<div className="category-choices">{['Trading','Automation','Production','Services','Contracting','Retail','Other'].map(c=><button className={company.category===c?'chosen':''} onClick={()=>setCompany({...company,category:c})}><Building2/>{c}</button>)}</div>:step===1?<div className="form-grid single"><label>Company Name *<input value={company.name} onChange={e=>setCompany({...company,name:e.target.value})} placeholder="Registered company name"/></label><label>VAT Registration Number<input value={company.vat} onChange={e=>setCompany({...company,vat:e.target.value})}/></label><label>National Address<input value={company.address} onChange={e=>setCompany({...company,address:e.target.value})}/></label><label>Base Currency<select value={company.currency} onChange={e=>setCompany({...company,currency:e.target.value})}><option>SAR</option><option>USD</option><option>AED</option><option>EUR</option></select></label></div>:<div className="form-grid single"><label>Administrator Name *<input value={company.admin} onChange={e=>setCompany({...company,admin:e.target.value})}/></label><label>Business Email<input type="email" value={company.email} onChange={e=>setCompany({...company,email:e.target.value})}/></label><p className="hint">Your workspace starts with 1 Admin + 1 additional user included in the subscription.</p></div>}<div className="onboard-actions">{step>0&&<button className="btn light" onClick={()=>setStep(step-1)}>Back</button>}<button className="btn primary" onClick={()=>{if(step<2)setStep(step+1);else{setOnboarded(true);notify('Company workspace created')}}}>{step===2?'Create Workspace':'Continue'} <ArrowLeft size={16}/></button></div></div></div>
+ return <div className={`app ${isAr?'rtl':''}`} dir={isAr?'rtl':'ltr'}><aside className={`sidebar ${menuOpen?'show':''}`}><div className="brand"><div className="brand-icon">H</div><div><h2>HISABAT</h2><span>CLOUD ERP</span></div></div><div className="workspace"><small>WORKSPACE</small><b>{company.name||'My Company'}</b><span>{company.category} · {company.currency}</span></div><nav><small className="menu-label">MAIN MENU</small>{menu.map(item=>{const Icon=item.icon;const open=expanded.includes(item.name);const selected=item.children.includes(active)||item.name===active;return <div className="nav-group" key={item.name}><button className={`nav-item ${selected?'active':''}`} onClick={()=>toggle(item.name)}><Icon size={18}/><span>{item.name}</span><ChevronDown size={16} className={`nav-chevron ${open?'rotated':''}`}/></button>{open&&<div className="submenu">{item.children.map(child=><button key={child} className={`submenu-item ${active===child?'selected':''}`} onClick={()=>go(child)}><i/>{child}</button>)}</div>}</div>})}</nav><div className="sidebar-bottom"><div className="help"><b>✦ Need assistance?</b><small>HISABAT Cloud workspace</small></div><div className="user"><div className="avatar">{(company.admin||'AD').slice(0,2).toUpperCase()}</div><div><b>{company.admin||'Administrator'}</b><small>Company Admin</small></div></div></div></aside><main className="main"><header className="topbar"><button className="mobile-menu" onClick={()=>setMenuOpen(!menuOpen)}><Menu/></button><div className="breadcrumb">Workspace <span>/</span> <b>{active}</b></div><div className="top-actions"><button className="language" onClick={()=>setLanguage(isAr?'English':'العربية')}><Globe size={16}/>{language}<ChevronDown size={14}/></button><button className="icon-btn"><Bell size={18}/></button><div className="avatar">{(company.admin||'AD').slice(0,2).toUpperCase()}</div></div></header><section className="content">{renderContent()}<footer>© 2026 HISABAT Cloud. All rights reserved. <span>Built for smarter business management.</span></footer></section></main>{toast&&<div className="toast"><CheckCircle2 size={17}/>{toast}</div>}
+ {modal&&<div className="modal-backdrop" onClick={()=>setModal('')}><div className="modal" onClick={e=>e.stopPropagation()}><button className="close" onClick={()=>setModal('')}><X/></button>{modal==='party'?<><h2>Add {partyForm.type}</h2><p className="muted">Create a detailed customer or supplier profile.</p><div className="form-grid"><label>Profile Type<select value={partyForm.type} onChange={e=>setPartyForm({...partyForm,type:e.target.value})}><option>Customer</option><option>Supplier</option></select></label><label>First & Last Name / Company *<input value={partyForm.name||''} onChange={e=>setPartyForm({...partyForm,name:e.target.value})}/></label><label>Arabic Name<input value={partyForm.arabic||''} onChange={e=>setPartyForm({...partyForm,arabic:e.target.value})}/></label><label>Email<input value={partyForm.email||''} onChange={e=>setPartyForm({...partyForm,email:e.target.value})}/></label><label>Phone<input value={partyForm.phone||''} onChange={e=>setPartyForm({...partyForm,phone:e.target.value})}/></label><label>VAT Registration Number<input value={partyForm.vatNo||''} onChange={e=>setPartyForm({...partyForm,vatNo:e.target.value})}/></label><label>National Address<input value={partyForm.address||''} onChange={e=>setPartyForm({...partyForm,address:e.target.value})}/></label><label>Opening Balance (SAR)<input type="number" value={partyForm.balance||''} onChange={e=>setPartyForm({...partyForm,balance:Number(e.target.value)})}/></label></div><button className="btn primary full" onClick={saveParty}><Save size={16}/>Save Profile</button></>:modal==='invoice'?<><h2>Create Sales Invoice</h2><p className="muted">New invoices are saved as Draft.</p><div className="form-grid"><label>Customer *<select value={invoiceForm.customer} onChange={e=>setInvoiceForm({...invoiceForm,customer:e.target.value})}><option value="">Select customer</option>{parties.filter(p=>p.type==='Customer').map(p=><option>{p.name}</option>)}</select></label><label>Invoice Date<input type="date" value={invoiceForm.date} onChange={e=>setInvoiceForm({...invoiceForm,date:e.target.value})}/></label><label>Due Date<input type="date" value={invoiceForm.due} onChange={e=>setInvoiceForm({...invoiceForm,due:e.target.value})}/></label><label>Subtotal (SAR) *<input type="number" value={invoiceForm.amount} onChange={e=>setInvoiceForm({...invoiceForm,amount:e.target.value})}/></label><label>VAT %<select value={invoiceForm.vat} onChange={e=>setInvoiceForm({...invoiceForm,vat:e.target.value})}><option value="15">15%</option><option value="0">0%</option><option value="5">5%</option></select></label><label>Notes<input value={invoiceForm.note} onChange={e=>setInvoiceForm({...invoiceForm,note:e.target.value})}/></label></div><div className="hint">VAT amount: {money(Number(invoiceForm.amount||0)*Number(invoiceForm.vat)/100)} · Total: {money(Number(invoiceForm.amount||0)*(1+Number(invoiceForm.vat)/100))}</div><button className="btn primary full" onClick={saveInvoice}><Save size={16}/>Save Draft Invoice</button></>:<><h2>New {active}</h2><p className="muted">This action can be configured in this workspace.</p><button className="btn primary" onClick={()=>{setModal('');notify('Workspace ready')}}>Continue</button></>}</div></div>}
+ </div>
 }
+function Stat({label,value,icon,tone}:{label:string;value:string;icon:any;tone:string}){return <div className="stat"><div className="stat-top"><span>{label}</span><i className={tone}>{icon}</i></div><strong>{value}</strong><small>Current workspace</small></div>}
